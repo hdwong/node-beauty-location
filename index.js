@@ -15,7 +15,7 @@ let location = {
     core = c;
     logger = core.getLogger(serviceName);
     config = core.getConfig(serviceName);
-    // TODO load location.data
+    // load location.data
     let fs = require('fs');
     parents = JSON.parse(fs.readFileSync(__dirname + '/location-parent.json'));
     data = JSON.parse(fs.readFileSync(__dirname + '/location.json'));
@@ -45,7 +45,11 @@ let location = {
   get_children: (req, res, next) => {
     let id = req.query.id === undefined ? '0' : req.query.id;
     if (parents[id] !== undefined) {
-      return next(parents[id]);
+      let children = {}, p = parents[id], len = p.length, i;
+      for (i = 0; i < len; ++i) {
+        children[p[i]] = data[p[i]][0];
+      }
+      return next(children);
     }
     next(null);
   },
@@ -67,7 +71,8 @@ let location = {
     } else if (province = country.match('^(.+?)(?:省|市)')) {
       province = province[1];
     }
-    info.province = provinces[province] !== undefined ? provinces[province] : null;
+    info.province = (province && provinces[province] !== undefined) ?
+        provinces[province] : null;
     next(info);
   }
 };
